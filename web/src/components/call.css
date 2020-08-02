@@ -1,0 +1,25 @@
+.self-frame {
+  position: fixed;
+  right: 10px;
+  bottom: 10px;
+  height: 30vh;
+  width: 20vw;
+}
+
+.guest-frame {
+  text-align: center;
+  height: 60vh;
+  width: 100vw;
+}
+
+video {
+  height: inherit;
+  width: inherit;
+}
+
+@media only screen and (max-width: 768px) {
+  .self-frame {
+    height: 210px;
+    width: 156px;
+  }
+}
