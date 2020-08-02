@@ -7,16 +7,18 @@ import "antd-mobile/es/button/style/index.css";
 
 const Create = () => {
   const { connected, id } = usePeer();
-  const { callStarted, setCallState } = useState(false);
+  const [callStarted, setCallState] = useState(false);
 
   const share = useCallback(() => {
     const shareData = {
-      text: "Call it",
+      title: "Peer IT",
       url: `https://${window.location.host}/join/${id}`,
     };
 
     if (navigator.share) {
-      navigator.share(shareData);
+      return navigator
+        .share(shareData)
+        .catch((e) => console.error("error while sharing", e));
     } else {
       // eslint-disable-next-line no-alert
       alert(`Please use this url, https://${window.location.host}/join/${id}`);
