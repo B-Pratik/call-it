@@ -1,5 +1,4 @@
 /* eslint-disable prefer-reflect */
-/* eslint-disable no-undef */
 import Peer from "peerjs";
 import { useState, useCallback } from "react";
 
@@ -7,8 +6,11 @@ const peer = new Peer(undefined, {
   path: "/ourApp",
   secure: true,
   host: "our-peer.herokuapp.com",
+  key: process.env.PEER_KEY,
   debug: 3,
 });
+
+let callInstance;
 
 const usePeer = () => {
   const [{ connected, id }, setConnection] = useState({
@@ -16,25 +18,44 @@ const usePeer = () => {
     id: peer.id,
   });
 
-  const close = useCallback(
-    () => setConnection({ id: null, connected: false }),
-    []
-  );
+  const close = useCallback(() => {
+    callInstance = null;
+    setConnection({ id: null, connected: false });
+  }, []);
 
-  const setUserStream = useCallback((userStram, meetingId) => {
+  const hangCall = useCallback(() => {
+    if (callInstance) {
+      return callInstance.close();
+    }
+  }, []);
+
+  const getGuestStream = useCallback((userStram, meetingId, callback) => {
     if (meetingId) {
-      return new Promise((resolve) => {
-        const call = peer.call(meetingId, userStram);
-        call.on("stream", resolve);
-      });
+      const call = peer.call(meetingId, userStram);
+      call.on("stream", (stream) => callback(null, stream));
+      call.on("error", () => callback(true));
+      call.on("close", () => callback(true));
+      callInstance = call;
     } else {
-      return new Promise((resolve) => {
-        peer.on("call", (call) => {
-          call.answer(userStram);
-          call.on("stream", resolve);
-        });
+      peer.on("call", (call) => {
+        call.answer(userStram);
+        call.on("stream", (stream) => callback(null, stream));
+        call.on("error", () => callback(true));
+        call.on("close", () => callback(true));
+        callInstance = call;
       });
     }
+  }, []);
+
+  const updateTrack = useCallback((track) => {
+    if (callInstance) {
+      var sender = callInstance.peerConnection.getSenders().find((s) => {
+        return s.track.kind === track.kind;
+      });
+
+      return sender.replaceTrack(track);
+    }
+    return Promise.resolve(null);
   }, []);
 
   peer.on("open", (id) => setConnection({ id, connected: true }));
@@ -43,7 +64,7 @@ const usePeer = () => {
   peer.on("disconnected", close);
   peer.on("error", close);
 
-  return { connected, id, setUserStream };
+  return { connected, id, getGuestStream, updateTrack, hangCall };
 };
 
 export default usePeer;

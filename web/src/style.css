@@ -19,3 +19,20 @@ body {
 label {
   font-size: 15px;
 }
+
+.notice-bar {
+  max-width: 100vw;
+  padding: 20px;
+  margin: 20px;
+}
+
+.notice-bar .am-notice-bar,.notice-bar.info-bar {
+  background-color: #e8787c;
+  color: #fff;
+  overflow: hidden;
+  border-radius: 5px;
+}
+
+.am-button {
+  cursor: pointer;
+}
