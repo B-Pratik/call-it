@@ -38,7 +38,7 @@ module.exports = {
       inject: "body",
       scriptLoading: "defer",
     }),
-    new Dotenv(),
+    new Dotenv({ systemvars: true }),
     //new BundleAnalyzerPlugin(),
   ],
   devServer: {
