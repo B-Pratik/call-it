@@ -33,11 +33,10 @@ const Call = ({ meetingId = null, setCallState = () => {} }) => {
 
   const [mediaPermissionProvided, setPermision] = useState(true);
   const [errorInConnection, setError] = useState(false);
-  const [facingMode, setFacingMode] = useState("user");
 
   useEffect(() => {
     (async () => {
-      const userStream = await generateStream();
+      const userStream = await generateStream(window.facingMode);
       if (!userStream) {
         return setPermision(false);
       }
@@ -59,23 +58,20 @@ const Call = ({ meetingId = null, setCallState = () => {} }) => {
 
   const setStream = useCallback(
     (stream) => {
+      callerStream.current.srcObject = stream;
       const [track] = stream.getVideoTracks();
-      updateTrack(track)
-        .then(() => {
-          callerStream.current.srcObject = stream;
-        })
-        .catch((...e) => alert("failed" + JSON.stringify(e)));
+      updateTrack(track).catch((...e) => alert("failed" + JSON.stringify(e)));
     },
     [updateTrack]
   );
 
   const onFlip = useCallback(async () => {
-    const newMode = facingMode === "user" ? "environment" : "user";
+    const newMode = window.facingMode === "user" ? "environment" : "user";
 
     const stream = await generateStream(newMode);
     setStream(stream);
-    setFacingMode(newMode);
-  }, [facingMode, setStream]);
+    window.facingMode = newMode;
+  }, [setStream]);
 
   const onScreen = useCallback(async () => {
     if (typeof navigator.mediaDevices.getDisplayMedia === "function") {
