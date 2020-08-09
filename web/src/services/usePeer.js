@@ -8,6 +8,16 @@ const peer = new Peer(undefined, {
   host: "our-peer.herokuapp.com",
   key: process.env.PEER_KEY,
   debug: 3,
+  config: {
+    iceServers: [
+      { url: "stun:stun.l.google.com:19302" },
+      {
+        url: "turn:numb.viagenie.ca",
+        credential: "muazkh",
+        username: "webrtc@live.com",
+      },
+    ],
+  },
 });
 
 let callInstance;
