@@ -11,11 +11,11 @@ const peer = new Peer(undefined, {
   config: {
     iceServers: [
       { url: "stun:stun.l.google.com:19302" },
-      {
-        url: "turn:numb.viagenie.ca",
-        credential: "muazkh",
-        username: "webrtc@live.com",
-      },
+      // {
+      //   url: "turn:numb.viagenie.ca",
+      //   credential: "muazkh",
+      //   username: "webrtc@live.com",
+      // },
     ],
   },
 });
