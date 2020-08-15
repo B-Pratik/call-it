@@ -11,11 +11,11 @@ const peer = new Peer(undefined, {
   config: {
     iceServers: [
       { url: "stun:stun1.l.google.com:19302" },
-      {
-        url: "turn:turn.bistri.com:80",
-        credential: "homeo",
-        username: "homeo",
-      },
+      // {
+      //   url: "turn:turn.bistri.com:80",
+      //   credential: "homeo",
+      //   username: "homeo",
+      // },
     ],
   },
 });
