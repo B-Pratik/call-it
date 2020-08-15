@@ -17,7 +17,7 @@ module.exports = {
     rules: [
       {
         test: /\.css$/,
-        use: ["style-loader", "css-loader"],
+        use: ["style-loader", "postcss-loader"],
       },
       {
         test: /\.js$/,
@@ -52,5 +52,17 @@ module.exports = {
     disableHostCheck: true,
     useLocalIp: true,
     historyApiFallback: true,
+  },
+  optimization: {
+    moduleIds: "hashed",
+    splitChunks: {
+      cacheGroups: {
+        vendor: {
+          test: /[\\/]node_modules[\\/]/,
+          name: "vendors",
+          chunks: "all",
+        },
+      },
+    },
   },
 };

@@ -10,6 +10,7 @@ import "antd-mobile/es/notice-bar/style/index.css";
 import "antd-mobile/es/icon/style/index.css";
 import "./call.css";
 
+window.facingMode = "user";
 const generateStream = (facingMode = "user") => {
   const constraints = {
     audio: true,
