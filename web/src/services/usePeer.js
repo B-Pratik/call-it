@@ -8,16 +8,16 @@ const peer = new Peer(undefined, {
   secure: true,
   key: process.env.PEER_KEY,
   debug: 3,
-  config: {
-    iceServers: [
-      { url: "stun:stun1.l.google.com:19302" },
-      // {
-      //   url: "turn:turn.bistri.com:80",
-      //   credential: "homeo",
-      //   username: "homeo",
-      // },
-    ],
-  },
+  // config: {
+  //   iceServers: [
+  //     { url: "stun:stun1.l.google.com:19302" },
+  //     // {
+  //     //   url: "turn:turn.bistri.com:80",
+  //     //   credential: "homeo",
+  //     //   username: "homeo",
+  //     // },
+  //   ],
+  // },
 });
 
 let callInstance;
