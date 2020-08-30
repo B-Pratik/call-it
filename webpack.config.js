@@ -2,6 +2,7 @@ const path = require("path");
 const HtmlWebpackPlugin = require("html-webpack-plugin");
 const { CleanWebpackPlugin } = require("clean-webpack-plugin");
 const Dotenv = require("dotenv-webpack");
+const MiniCssExtractPlugin = require("mini-css-extract-plugin");
 // const BundleAnalyzerPlugin = require("webpack-bundle-analyzer")
 //   .BundleAnalyzerPlugin;
 
@@ -17,7 +18,11 @@ module.exports = {
     rules: [
       {
         test: /\.css$/,
-        use: ["style-loader", "postcss-loader"],
+        use: [
+          MiniCssExtractPlugin.loader,
+          { loader: "css-loader", options: { importLoaders: 1 } },
+          "postcss-loader",
+        ],
       },
       {
         test: /\.js$/,
@@ -25,7 +30,17 @@ module.exports = {
         use: {
           loader: "babel-loader",
           options: {
-            presets: ["@babel/preset-react"],
+            babelrc: false,
+            presets: [
+              "@babel/preset-react",
+              [
+                "@babel/preset-env",
+                {
+                  useBuiltIns: "usage",
+                  corejs: { version: 3, proposals: true },
+                },
+              ],
+            ],
           },
         },
       },
@@ -33,6 +48,7 @@ module.exports = {
   },
   plugins: [
     new CleanWebpackPlugin(),
+    new MiniCssExtractPlugin({}),
     new HtmlWebpackPlugin({
       template: "./index.html",
       inject: "body",
