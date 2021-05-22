@@ -27,12 +27,13 @@ const generateStream = (facingMode = "user") => {
 };
 
 const Call = ({ meetingId = null, setCallState = () => {} }) => {
-  const { getGuestStream, updateTrack, hangCall } = usePeer();
+  const { getGuestStream, updateTrack, hangCall, connected } = usePeer();
 
   const callerStream = useRef(null);
   const calleeStream = useRef(null);
 
   const [mediaPermissionProvided, setPermision] = useState(true);
+  const [fullScreen, setFullscreen] = useState(false);
   const [errorInConnection, setError] = useState(false);
 
   useEffect(() => {
@@ -78,7 +79,10 @@ const Call = ({ meetingId = null, setCallState = () => {} }) => {
     if (typeof navigator.mediaDevices.getDisplayMedia === "function") {
       let stream;
       try {
-        stream = await navigator.mediaDevices.getDisplayMedia();
+        stream = await navigator.mediaDevices.getDisplayMedia({
+          audio: true,
+          video: true,
+        });
       } catch (error) {
         return alert("screen sharing not supported");
       }
@@ -102,7 +106,12 @@ const Call = ({ meetingId = null, setCallState = () => {} }) => {
           </NoticeBar>
         </div>
       )}
-      <div className="guest-frame">
+      <div
+        className={`guest-frame ${
+          fullScreen && connected ? "full-screen" : ""
+        }`}
+        onClick={() => setFullscreen(!fullScreen)}
+      >
         <video ref={calleeStream} autoPlay />
       </div>
       <div className="actions">

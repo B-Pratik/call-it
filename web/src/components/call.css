@@ -7,9 +7,19 @@
 }
 
 .guest-frame {
+  position: absolute;
+  left: 0;
+  top: 0;
+  z-index: -999;
   text-align: center;
   height: 60vh;
   width: 100vw;
+  cursor: pointer;
+  transition: all 1s ease-out;
+}
+
+.full-screen {
+  height: 100vh;
 }
 
 video {
@@ -31,3 +41,7 @@ video {
   padding: 10px;
   max-width: 50vw;
 }
+
+
+
+    
