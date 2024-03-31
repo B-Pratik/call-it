@@ -1,9 +1,7 @@
-import React, { useCallback, useState } from "react";
-import Button from "antd-mobile/es/button";
+import { useCallback, useState } from "react";
+import { Button } from "antd-mobile";
 import usePeer from "../services/usePeer";
 import Call from "./Call";
-
-import "antd-mobile/es/button/style/index.css";
 
 const Create = () => {
   const { connected, id } = usePeer();

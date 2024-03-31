@@ -1,29 +1,8 @@
-/* eslint-disable prefer-reflect */
 import Peer from "peerjs";
+import { v4 as uuidv4 } from 'uuid';
 import { useState, useCallback } from "react";
 
-const peer = new Peer(undefined, {
-  path: "/ourApp",
-  host: "/",
-  secure: true,
-  key: process.env.PEER_KEY,
-  debug: 3,
-  config: {
-    iceServers: [
-      { url: "stun:stun1.l.google.com:19302" },
-      {
-        url: "turn:relay.backups.cz",
-        credential: "webrtc",
-        username: "webrtc",
-      },
-      {
-        url: "turn:relay.backups.cz?transport=tcp",
-        credential: "webrtc",
-        username: "webrtc",
-      },
-    ],
-  },
-});
+const peer = new Peer(uuidv4());
 
 let callInstance;
 

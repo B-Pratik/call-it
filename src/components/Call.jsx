@@ -1,13 +1,10 @@
 /* eslint-disable no-alert */
-import React, { useEffect, useRef, useState, useCallback } from "react";
-import NoticeBar from "antd-mobile/es/notice-bar";
-import Icon from "antd-mobile/es/icon";
-import Button from "antd-mobile/es/button";
+import { useEffect, useRef, useState, useCallback } from "react";
+import {NoticeBar, Button} from "antd-mobile";
+import { ExclamationCircleOutline, CloseCircleOutline } from 'antd-mobile-icons'
+
 import usePeer from "../services/usePeer";
 
-import "antd-mobile/es/button/style/index.css";
-import "antd-mobile/es/notice-bar/style/index.css";
-import "antd-mobile/es/icon/style/index.css";
 import "./call.css";
 
 window.facingMode = "user";
@@ -94,14 +91,14 @@ const Call = ({ meetingId = null, setCallState = () => {} }) => {
     <>
       {!mediaPermissionProvided && (
         <div className="notice-bar">
-          <NoticeBar icon={<Icon type="loading" size="md" />}>
+          <NoticeBar icon={<ExclamationCircleOutline />}>
             Please provide permission to use camera/microphone and try again.
           </NoticeBar>
         </div>
       )}
       {errorInConnection && (
         <div className="notice-bar">
-          <NoticeBar icon={<Icon type="cross-circle" size="md" />}>
+          <NoticeBar icon={<CloseCircleOutline />}>
             Call disconnected.
           </NoticeBar>
         </div>
