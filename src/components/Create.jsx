@@ -12,7 +12,7 @@ const Create = () => {
   });
 
   const share = useCallback(() => {
-    const url = `https://${window.location.host}/join/${id}`;
+    const url = `https://${window.location.host}/#/join/${id}`;
 
     const shareData = {
       title: "Peer IT",
