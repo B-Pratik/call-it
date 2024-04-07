@@ -1,16 +1,14 @@
 {
-  "homepage": "https://b-pratik.github.io/call-it",
+  "homepage": "https://call-it.netlify.app",
   "name": "call-it",
   "private": true,
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "dev": "vite",
-    "build": "vite build --base=/call-it/",
+    "dev": "vite --host",
+    "build": "vite build",
     "lint": "eslint . --ext js,jsx --report-unused-disable-directives --max-warnings 0",
-    "preview": "vite preview",
-    "predeploy": "npm run build",
-    "deploy": "gh-pages -d dist"
+    "preview": "vite preview"
   },
   "dependencies": {
     "react": "^18.2.0",
@@ -29,7 +27,6 @@
     "react-router-dom": "^5.3.4",
     "uuid": "^9.0.1",
     "vite": "^5.2.0",
-    "vite-plugin-pwa": "^0.19.7",
-    "gh-pages": "^6.1.1"
+    "vite-plugin-pwa": "^0.19.7"
   }
 }
