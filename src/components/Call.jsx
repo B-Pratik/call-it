@@ -1,10 +1,9 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import usePeer from "../hooks/usePeer";
 
-const Call = () => {
+const Call = ({ meetingId = null }) => {
   const { connected, id, peerConnection, getGuestStream, updateTrack, hangCall } = usePeer();
 
-  const [callStarted, setCallStarted] = useState(false);
   const [remoteConnected, setRemoteConnected] = useState(false);
   const [isFlipped, setIsFlipped] = useState(false);
   const [showShareURL, setShowShareURL] = useState(false);
@@ -14,7 +13,7 @@ const Call = () => {
   const remoteVideoRef = useRef(null);
   const streamRef = useRef(null);
 
-  // Initialize local video
+  // Initialize local video and connect to remote
   useEffect(() => {
     const initStream = async () => {
       try {
@@ -22,11 +21,15 @@ const Call = () => {
           video: true,
           audio: true,
         });
+
         if (localVideoRef.current) localVideoRef.current.srcObject = stream;
         streamRef.current = stream;
 
-        getGuestStream(stream, null, (error, remoteStream) => {
-          if (error) return;
+        getGuestStream(stream, meetingId, (error, remoteStream) => {
+          if (error) {
+            console.error("Failed to get guest stream", error);
+            return;
+          }
           if (remoteVideoRef.current && remoteStream) {
             remoteVideoRef.current.srcObject = remoteStream;
             setRemoteConnected(true);
@@ -37,7 +40,7 @@ const Call = () => {
       }
     };
     initStream();
-  }, [getGuestStream]);
+  }, [getGuestStream, meetingId]);
 
   const handleShareID = useCallback(() => {
     const url = `https://${window.location.host}/#/join/${id}`;
@@ -87,14 +90,13 @@ const Call = () => {
 
   const handleHangUp = () => {
     hangCall();
-    setCallStarted(false);
     setRemoteConnected(false);
     streamRef.current?.getTracks().forEach((t) => t.stop());
   };
 
   return (
     <div className="relative flex flex-col items-center justify-center h-screen bg-gray-900 text-white p-4">
-      {/* Remote (callee) video */}
+      {/* Remote video */}
       <div className="relative w-full max-w-5xl flex justify-center items-center bg-black rounded-2xl overflow-hidden aspect-video">
         <video
           ref={remoteVideoRef}
@@ -107,7 +109,7 @@ const Call = () => {
             Waiting for remote user to join...
           </div>
         )}
-        {/* Local (caller) video floating */}
+        {/* Local video floating */}
         <video
           ref={localVideoRef}
           muted
@@ -164,7 +166,6 @@ const Call = () => {
         </button>
       </div>
 
-      {/* Share URL display */}
       {showShareURL && (
         <div className="mt-4 bg-gray-800 rounded-lg p-3 text-center max-w-lg break-words text-sm">
           <p>Share this link to start the call:</p>

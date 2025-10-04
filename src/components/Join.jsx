@@ -8,7 +8,7 @@ const Join = () => {
   const { meetingId = null } = useParams();
 
   if (!meetingId) {
-    return <Redirect to="/create" />;
+    return <Redirect to="/home" />;
   } else if (!connected) {
     return (
       <div style={{ margin: "50vw auto", width: "50vw" }}>
@@ -19,4 +19,5 @@ const Join = () => {
 
   return <Call meetingId={meetingId} />;
 };
+
 export default Join;
