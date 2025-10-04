@@ -1,7 +1,7 @@
 import { Redirect, useParams } from "react-router-dom";
 import { SpinLoading } from "antd-mobile";
 import Call from "./Call";
-import usePeer from "../services/usePeer";
+import usePeer from "../hooks/usePeer";
 
 const Join = () => {
   const { connected } = usePeer();

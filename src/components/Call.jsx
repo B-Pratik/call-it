@@ -1,146 +1,178 @@
-/* eslint-disable no-alert */
-import { useEffect, useRef, useState, useCallback } from "react";
-import {NoticeBar, Button} from "antd-mobile";
-import { ExclamationCircleOutline, CloseCircleOutline } from 'antd-mobile-icons'
+import { useCallback, useEffect, useRef, useState } from "react";
+import usePeer from "../hooks/usePeer";
 
-import usePeer from "../services/usePeer";
+const Call = () => {
+  const { connected, id, peerConnection, getGuestStream, updateTrack, hangCall } = usePeer();
 
-import "./call.css";
+  const [callStarted, setCallStarted] = useState(false);
+  const [remoteConnected, setRemoteConnected] = useState(false);
+  const [isFlipped, setIsFlipped] = useState(false);
+  const [showShareURL, setShowShareURL] = useState(false);
+  const [shareURL, setShareURL] = useState("");
 
-window.facingMode = "user";
-const generateStream = (facingMode = "user") => {
-  const constraints = {
-    audio: true,
-    video: {
-      frameRate: { ideal: 10, max: 15 },
-      facingMode,
-    },
+  const localVideoRef = useRef(null);
+  const remoteVideoRef = useRef(null);
+  const streamRef = useRef(null);
+
+  // Initialize local video
+  useEffect(() => {
+    const initStream = async () => {
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({
+          video: true,
+          audio: true,
+        });
+        if (localVideoRef.current) localVideoRef.current.srcObject = stream;
+        streamRef.current = stream;
+
+        getGuestStream(stream, null, (error, remoteStream) => {
+          if (error) return;
+          if (remoteVideoRef.current && remoteStream) {
+            remoteVideoRef.current.srcObject = remoteStream;
+            setRemoteConnected(true);
+          }
+        });
+      } catch (err) {
+        console.error("Error accessing media devices", err);
+      }
+    };
+    initStream();
+  }, [getGuestStream]);
+
+  const handleShareID = useCallback(() => {
+    const url = `https://${window.location.host}/#/join/${id}`;
+    if (navigator.share) {
+      navigator.share({ title: "Call It", url }).catch(() => {
+        setShareURL(url);
+        setShowShareURL(true);
+      });
+    } else {
+      setShareURL(url);
+      setShowShareURL(true);
+    }
+  }, [id]);
+
+  const handleFlip = async () => {
+    if (!streamRef.current) return;
+    const facingMode = isFlipped ? "user" : "environment";
+
+    const newStream = await navigator.mediaDevices.getUserMedia({
+      video: { facingMode },
+      audio: true,
+    });
+
+    const newTrack = newStream.getVideoTracks()[0];
+    const sender = peerConnection?.getSenders()?.find((s) => s.track?.kind === "video");
+    if (sender) sender.replaceTrack(newTrack);
+
+    if (localVideoRef.current) localVideoRef.current.srcObject = newStream;
+    streamRef.current = newStream;
+    setIsFlipped(!isFlipped);
   };
 
-  return navigator.mediaDevices.getUserMedia(constraints).catch((e) => {
-    console.error("Audio/Video permission error", e);
-    return null;
-  });
-};
-
-const Call = ({ meetingId = null, setCallState = () => {} }) => {
-  const { getGuestStream, updateTrack, hangCall, connected } = usePeer();
-
-  const callerStream = useRef(null);
-  const calleeStream = useRef(null);
-
-  const [mediaPermissionProvided, setPermision] = useState(true);
-  const [fullScreen, setFullscreen] = useState(false);
-  const [errorInConnection, setError] = useState(false);
-
-  useEffect(() => {
-    (async () => {
-      const userStream = await generateStream(window.facingMode);
-      if (!userStream) {
-        return setPermision(false);
-      }
-
-      callerStream.current.srcObject = userStream;
-
-      getGuestStream(userStream, meetingId, (error, guestStream) => {
-        if (error) {
-          setError(true);
-          setCallState(false);
-        } else if (guestStream) {
-          calleeStream.current.srcObject = guestStream;
-          setError(false);
-          setCallState(true);
-        }
-      });
-    })();
-  }, [getGuestStream, meetingId, setCallState]);
-
-  const setStream = useCallback(
-    (stream) => {
-      callerStream.current.srcObject = stream;
-      const [track] = stream.getVideoTracks();
-      updateTrack(track).catch((...e) => alert("failed" + JSON.stringify(e)));
-    },
-    [updateTrack]
-  );
-
-  const onFlip = useCallback(async () => {
-    const newMode = window.facingMode === "user" ? "environment" : "user";
-
-    const stream = await generateStream(newMode);
-    setStream(stream);
-    window.facingMode = newMode;
-  }, [setStream]);
-
-  const onScreen = useCallback(async () => {
-    if (typeof navigator.mediaDevices.getDisplayMedia === "function") {
-      let stream;
-      try {
-        stream = await navigator.mediaDevices.getDisplayMedia({
-          audio: true,
-          video: true,
-        });
-      } catch (error) {
-        return alert("screen sharing not supported");
-      }
-      setStream(stream);
+  const handleShareScreen = async () => {
+    if (!navigator.mediaDevices.getDisplayMedia) {
+      return alert("Screen sharing not supported");
     }
-  }, [setStream]);
+    try {
+      const screenStream = await navigator.mediaDevices.getDisplayMedia({ video: true, audio: true });
+      const sender = peerConnection?.getSenders()?.find((s) => s.track?.kind === "video");
+      if (sender) sender.replaceTrack(screenStream.getVideoTracks()[0]);
+      if (localVideoRef.current) localVideoRef.current.srcObject = screenStream;
+      streamRef.current = screenStream;
+    } catch (err) {
+      console.error("Screen share failed", err);
+    }
+  };
+
+  const handleHangUp = () => {
+    hangCall();
+    setCallStarted(false);
+    setRemoteConnected(false);
+    streamRef.current?.getTracks().forEach((t) => t.stop());
+  };
 
   return (
-    <>
-      {!mediaPermissionProvided && (
-        <div className="notice-bar">
-          <NoticeBar icon={<ExclamationCircleOutline />}>
-            Please provide permission to use camera/microphone and try again.
-          </NoticeBar>
-        </div>
-      )}
-      {errorInConnection && (
-        <div className="notice-bar">
-          <NoticeBar icon={<CloseCircleOutline />}>
-            Call disconnected.
-          </NoticeBar>
-        </div>
-      )}
-      <div
-        className={`guest-frame ${
-          fullScreen && connected ? "full-screen" : ""
-        }`}
-        onClick={() => setFullscreen(!fullScreen)}
-      >
-        <video ref={calleeStream} autoPlay />
+    <div className="relative flex flex-col items-center justify-center h-screen bg-gray-900 text-white p-4">
+      {/* Remote (callee) video */}
+      <div className="relative w-full max-w-5xl flex justify-center items-center bg-black rounded-2xl overflow-hidden aspect-video">
+        <video
+          ref={remoteVideoRef}
+          autoPlay
+          playsInline
+          className="w-full h-full object-cover rounded-2xl"
+        />
+        {!remoteConnected && (
+          <div className="absolute inset-0 flex items-center justify-center text-gray-300 text-sm">
+            Waiting for remote user to join...
+          </div>
+        )}
+        {/* Local (caller) video floating */}
+        <video
+          ref={localVideoRef}
+          muted
+          autoPlay
+          className="absolute bottom-4 right-4 w-40 h-28 object-cover rounded-lg border border-white/20 shadow-md"
+        />
       </div>
-      <div className="actions">
-        <Button
-          type="primary"
-          inline
-          onClick={onFlip}
-          style={{ margin: "10px" }}
+
+      {/* Toolbar */}
+      <div className="flex items-center gap-3 mt-6">
+        <button
+          className={`px-4 py-2 rounded-lg font-medium transition-all ${
+            remoteConnected
+              ? "bg-blue-600 hover:bg-blue-700"
+              : "bg-gray-600 cursor-not-allowed"
+          }`}
+          onClick={handleFlip}
+          disabled={!remoteConnected}
         >
           Flip
-        </Button>
-        <Button
-          type="primary"
-          inline
-          onClick={onScreen}
-          style={{ margin: "10px" }}
+        </button>
+        <button
+          className={`px-4 py-2 rounded-lg font-medium transition-all ${
+            remoteConnected
+              ? "bg-green-600 hover:bg-green-700"
+              : "bg-gray-600 cursor-not-allowed"
+          }`}
+          onClick={handleShareScreen}
+          disabled={!remoteConnected}
         >
-          Share
-        </Button>
-        <Button
-          type="warning"
-          inline
-          onClick={hangCall}
-          style={{ margin: "10px" }}
+          Share Screen
+        </button>
+        <button
+          className={`px-4 py-2 rounded-lg font-medium transition-all ${
+            connected
+              ? "bg-purple-600 hover:bg-purple-700"
+              : "bg-gray-600 cursor-not-allowed"
+          }`}
+          onClick={handleShareID}
+          disabled={!connected}
         >
-          Hang
-        </Button>
+          Share ID
+        </button>
+        <button
+          className={`px-4 py-2 rounded-lg font-medium transition-all ${
+            remoteConnected
+              ? "bg-red-600 hover:bg-red-700"
+              : "bg-gray-600 cursor-not-allowed"
+          }`}
+          onClick={handleHangUp}
+          disabled={!remoteConnected}
+        >
+          Hang Up
+        </button>
       </div>
-      <div className="self-frame">
-        <video ref={callerStream} muted autoPlay />
-      </div>
-    </>
+
+      {/* Share URL display */}
+      {showShareURL && (
+        <div className="mt-4 bg-gray-800 rounded-lg p-3 text-center max-w-lg break-words text-sm">
+          <p>Share this link to start the call:</p>
+          <p className="mt-2 text-blue-400 font-mono">{shareURL}</p>
+        </div>
+      )}
+    </div>
   );
 };
+
 export default Call;
